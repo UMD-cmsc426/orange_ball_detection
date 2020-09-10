@@ -1,7 +1,7 @@
 # Project specific ignore:
 train_images/
 test_images/
-
+.idea/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
