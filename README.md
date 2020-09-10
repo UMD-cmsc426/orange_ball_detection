@@ -9,12 +9,12 @@
 
 [Train_Images](https://drive.google.com/file/d/17XiM86JqHqko4JC00-E4w4sPKnzh2iMz/view?usp=sharing)
 
-###Deadline
+### Deadline
 11:59:59 PM, September 22, 2022 
 
 We will release the test dataset 48 hours before the deadline i.e. 11:59:59PM, Sunday, September 20.
 
-###Problem Statement
+### Problem Statement
 - Write MATLAB code to cluster the orange ball using Single Gaussian [30 points]
 - Write MATLAB code to cluster the orange ball using Gaussian Mixture Model [40 points] and 
 - Estimate the distance to the ball [20 points]. 
