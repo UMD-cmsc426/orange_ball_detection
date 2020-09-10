@@ -7,8 +7,12 @@
 
 [Project Description](https://cmsc426.github.io/2020/proj/p1/)
 
+[Train_Images](https://drive.google.com/file/d/17XiM86JqHqko4JC00-E4w4sPKnzh2iMz/view?usp=sharing)
+
 ###Deadline
 11:59:59 PM, September 22, 2022 
+
+We will release the test dataset 48 hours before the deadline i.e. 11:59:59PM, Sunday, September 20.
 
 ###Problem Statement
 - Write MATLAB code to cluster the orange ball using Single Gaussian [30 points]
