@@ -1,7 +1,7 @@
 # project1
 
 ### Links
-[Color Seg tutorial doc](https://umd.zoom.us/j/95317373459?pwd=Ynp0aStLaURGNjBobGd5SVZwQTlsdz09)
+[Color Seg tutorial doc](https://cmsc426.github.io/colorseg/)
 
 [Color Seg tutorial vod](https://www.youtube.com/watch?v=D5AcaFMY_BI&feature=youtu.be&t=5)
 
