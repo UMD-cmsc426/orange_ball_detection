@@ -1,30 +1,32 @@
-import trainGMM, testGMM, measureDepth,plotGMM
+import trainGMM
+import testGMM
+import measureDepth
 import cv2
 import os
 
-def gmm(training = True):
+
+def gmm(training):
     # Set threshold and number of gaussians
     threshold = 0.0001
     K = 5
     clusters = []
     depths = []
 
-    # It's a little bit inefficient to train before test.
-    # Load training images
-    train_images = load_images("train_images")
-    K, scaling, mean, cov = trainGMM.trainGMM(K, train_images, max_iter=100)
-    if not training:
+    if training:
+        # Load training images
+        train_images = load_images("train_images")
+        K, scaling, mean, cov = trainGMM.trainGMM(K, train_images, max_iter=100)
+    else:
         # Load test images
         test_images = load_images("test_images")
         for test_img in test_images:
             cluster = testGMM.testGMM(K, threshold, scaling, mean, cov, test_img)
-            clusters.append(cluster) ### not sure here
+            clusters.append(cluster)
             depth = measureDepth.measureDepth(cluster, test_img)
             depths.append(depth)
-            plotGMM(scaling, mean, cov, test_img)
+            plotGMM(scaling, mean, cov, images)  # 是啥时候plot plot的是train还是test呀
 
-    return clusters, depths # why return a batch?
-
+    return clusters, depth
 
 
 def load_images(folder):
@@ -34,8 +36,3 @@ def load_images(folder):
         if img is not None:
             images.append(img)
     return images
-
-
-
-
-

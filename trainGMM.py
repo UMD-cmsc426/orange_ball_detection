@@ -66,11 +66,3 @@ def trainGMM(K, img, max_iter):
             params[i] = (new_scaling, new_mean, new_cov)
 
         i += 1
-
-
-
-
-
-
-
-
