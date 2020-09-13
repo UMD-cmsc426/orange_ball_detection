@@ -54,5 +54,4 @@ if __name__ == "__main__":
     output_dir = "single_gaussian_result"
     # User defined threshold
     tau = 0.00000000000000001
-    # Call mask generator function
     mask_generator(input_dir,output_dir,tau)
