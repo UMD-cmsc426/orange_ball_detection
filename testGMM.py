@@ -4,7 +4,7 @@ import sys
 import re
 import os
 
-def testGMM(K, threshold, cov, img):
+def testGMM(K, threshold, img):
     digit = re.findall(r'\d+\d+\d*', img)
     file_name = str(digit[0]) + "_weight.npy"
     with open(os.path.join("weights", file_name), "wb") as f:
