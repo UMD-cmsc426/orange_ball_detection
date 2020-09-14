@@ -69,13 +69,7 @@ def trainGMM(K, max_iter, img_name):
                     except:
                         likelihood = 0
                     likelihood = likelihood if likelihood != 0 else 1e-40
-                    # if likelihood == 0:
-                    #     print("likelihood is zero")
-                    #     print("curr_pix: \n",pix)
-                    #     print("cluster_mean: \n", cluster_mean)
-                    #     print("cluster cov: \n", cluster_cov)
-                    #     sys.exit()
-                    ## calculate weight at position (w, h)
+
                     weight = cluster_scaling * likelihood
                     cumulated_weights[w][h] += weight
                     cluster_weights[w][h] = weight # probability of each pixel belonging to this cluster
