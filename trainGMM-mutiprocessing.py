@@ -63,6 +63,7 @@ def trainGMM(K, max_iter, img_name):
             cumulated_weights = np.zeros((img.shape[0], img.shape[1]))
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
 
+            #----- multiprocessing start here
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
@@ -71,24 +72,19 @@ def trainGMM(K, max_iter, img_name):
                     except:
                         likelihood = 0
                     likelihood = likelihood if likelihood != 0 else 1e-40
-                    # if likelihood == 0:
-                    #     print("likelihood is zero")
-                    #     print("curr_pix: \n",pix)
-                    #     print("cluster_mean: \n", cluster_mean)
-                    #     print("cluster cov: \n", cluster_cov)
-                    #     sys.exit()
-                    ## calculate weight at position (w, h)
                     weight = cluster_scaling * likelihood
-                    cumulated_weights[w][h] += weight
-                    cluster_weights[w][h] = weight # probability of each pixel belonging to this cluster
-
+                    cumulated_weights[w][h] += weight   # multiprocessing shared variable
+                    cluster_weights[w][h] = weight # multiprocessing not shared variable
             weights.append(cluster_weights) # weights for all clusters 1 to K,
+            #---- end of mutiprocessing here; join here
+
             #weights[i][w][h]is the probability of the (w,h) pixel belonging to the ith cluster
         for cluster in range(K):
             print('cluster2 =',cluster)
             if (weights[cluster]==np.nan).any() or  (cumulated_weights==np.nan).any():print('fvck!')
             weights[cluster] = np.divide(np.double(weights[cluster]), np.double(cumulated_weights))
 
+        # ---- Another multiprocessing start here
         # Maximization step - get new scaling, mean, and cov for each cluster
         for cluster in range(K):
             mean_sum = np.zeros((3,1)) # sums all weight*pixel RGB value on image
@@ -115,8 +111,10 @@ def trainGMM(K, max_iter, img_name):
             print("new mean at cluster ", cluster, "is \n", new_mean )
             # update model
             params[cluster] = (new_scaling, new_mean, new_cov)
+            # ---- end of mutiprocessing here; join here
         print("-----------------")
         iter += 1
+
     # store weights to .npy
     if not os.path.exists("weights"):
         os.mkdir("weights")
