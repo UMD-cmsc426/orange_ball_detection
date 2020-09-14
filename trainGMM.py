@@ -7,8 +7,6 @@ import testGMM
 import re
 import copy
 
-
-
 # parameters:
 # k: int, number of guassian distribution
 # max_iter: int, maximum number of step in optimization
@@ -25,7 +23,7 @@ def trainGMM(K, max_iter, img_name):
         A = np.random.random((3,3))*20
         cov = np.dot(A, A.transpose())
         scaling = (random.random() * 5.0)
-        return [scaling,mean,cov]
+        return [scaling, mean, cov]
 
     params = [initialize() for cluster in range(K)]
     # Structure of para:
@@ -85,14 +83,14 @@ def trainGMM(K, max_iter, img_name):
             weights.append(cluster_weights) # weights for all clusters 1 to K,
             #weights[i][w][h]is the probability of the (w,h) pixel belonging to the ith cluster
         for cluster in range(K):
-            print('cluster2 =',cluster)
+            print('cluster2 =', cluster)
             if (weights[cluster]==np.nan).any() or  (cumulated_weights==np.nan).any():print('fvck!')
             weights[cluster] = np.divide(np.double(weights[cluster]), np.double(cumulated_weights))
 
         # Maximization step - get new scaling, mean, and cov for each cluster
         for cluster in range(K):
-            mean_sum = np.zeros((3,1)) # sums all weight*pixel RGB value on image
-            cov_sum = np.zeros((3,3))
+            mean_sum = np.zeros((3, 1)) # sums all weight*pixel RGB value on image
+            cov_sum = np.zeros((3, 3))
             sum_weights = np.sum(weights[cluster]) # sum of all the weights given a cluster
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
