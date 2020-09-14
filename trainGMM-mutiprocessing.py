@@ -54,7 +54,7 @@ def trainGMM(K, max_iter, img_name):
         prev_total_mean = copy.deepcopy(total_mean)
 
         # Expectation step - assign points to clusters, get cluster weight
-        weights = []
+        weights = np.zeros()
         for cluster in range(K):
             print('cluster1 =',cluster)
             # weight for a single cluster
@@ -128,7 +128,7 @@ def trainGMM(K, max_iter, img_name):
 
 
 if __name__ == "__main__":
-    np.seterr(all='raise')
+    #np.seterr(all='raise')
     input_dir = "train_images"
     for img_name in os.listdir(input_dir):
         img = os.path.join(input_dir, img_name)
