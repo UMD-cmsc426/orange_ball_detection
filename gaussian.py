@@ -19,7 +19,7 @@ def cal_mean_cov(img):
     cov = cov/(l*w)
     return mean,cov
 
-def mask_generator(input_dir,output_dir, tau):
+def single_gussian(input_dir,output_dir, tau):
     for img_name in os.listdir(input_dir):
         img = cv2.imread(os.path.join(input_dir, img_name))
         mean, cov = cal_mean_cov(img)
@@ -54,4 +54,4 @@ if __name__ == "__main__":
     output_dir = "single_gaussian_result"
     # User defined threshold
     tau = 0.00000000000000001
-    mask_generator(input_dir,output_dir,tau)
+    single_gussian(input_dir,output_dir,tau)

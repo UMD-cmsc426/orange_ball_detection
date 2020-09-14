@@ -20,7 +20,7 @@ def cal_mean_cov(img):
     cov = cov/(l*w)
     return mean,cov
 
-def mask_generator(img_name,input_dir,output_dir, tau):
+def single_gussian(img_name,input_dir,output_dir, tau):
     img = cv2.imread(os.path.join(input_dir,img_name))
     mean, cov = cal_mean_cov(img)
     # creat a mask to indicate the position of ball
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     jobs = []
     for img in os.listdir(input_dir):
        # p = multiprocessing.Process(target=mask_generator(os.path.join(input_dir,img), output_dir, tau))
-        p = multiprocessing.Process(target=mask_generator ,args=(img, input_dir,output_dir, tau,))
+        p = multiprocessing.Process(target=single_gussian ,args=(img, input_dir,output_dir, tau,))
         while (len(jobs) > num_process):
             time.sleep(5)
         jobs.append(p)
