@@ -22,6 +22,9 @@ def trainGMM(K, img, max_iter):
         for cluster in range(K):
             cluster_weights = []
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
+            print("Current scaliing for cluster ", cluster)
+            print("Current mean for cluster ", mean)
+            print("Current cov for cluster \n", cov)
 
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
