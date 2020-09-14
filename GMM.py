@@ -20,11 +20,11 @@ def gmm(training):
         # Load test images
         test_images = load_images("test_images")
         for test_img in test_images:
-            cluster = testGMM.testGMM(K, threshold, scaling, mean, cov, test_img)
+            cluster = testGMM.testGMM(K, threshold, test_img)
             clusters.append(cluster)
             depth = measureDepth.measureDepth(cluster, test_img)
             depths.append(depth)
-            plotGMM(scaling, mean, cov, images)  # 是啥时候plot plot的是train还是test呀
+    plotGMM()
 
     return clusters, depth
 
