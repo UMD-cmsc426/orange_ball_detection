@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import sys
 
 
 def testGMM(K, threshold, scaling, mean, cov, img):
@@ -20,5 +21,10 @@ def testGMM(K, threshold, scaling, mean, cov, img):
 
 
 def get_likelihood(pixel, mean, cov):
+    if (np.all(pixel == 0) or np.all(pixel == 0) or np.all(pixel == 0)):
+        print("pixel\n ", pixel)
+        print("mean\n ", mean)
+        print("cov\n ", cov)
+        sys.exit()
     # math.exp((pixel - mean).T.dot(np.linalg.inv(cov)).dot(pixel - mean)) / math.sqrt(pow(2 * math.pi, 3) * np.linalg.det(cov))
     return  1 / (math.sqrt(((2 * math.pi) ** 3) * np.linalg.det(cov))) * math.exp((-0.5) * (pixel - mean).T @ np.linalg.inv(cov) @ (pixel - mean))

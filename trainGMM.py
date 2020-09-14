@@ -1,71 +1,139 @@
-import testGMM
+import os
+import cv2
 import numpy as np
+import random
+import sys
+import testGMM
+import re
+import copy
 
 
-def trainGMM(K, img, max_iter):
-    converge_criteria = 0
-    # TODO: randomly initialize parameters for all clusters
-    params = []
-    for i in range(K):
-        scaling = 0
-        mean = 0
-        cov = []
-        params.append((scaling, mean, cov))
 
-    sum_means = 0
-    sum_prev_means = 0
+# parameters:
+# k: int, number of guassian distribution
+# max_iter: int, maximum number of step in optimization
+# img_name: strings, the relative path to single image, i.e. "train_images/032.jpg"
+def trainGMM(K, max_iter, img_name):
+    # read img
+    img = cv2.imread(img_name)
+    # user defined converge threshold
+    tau = 0.00000000000000001
 
-    while i <= max_iter and abs(sum_means - sum_prev_means) > converge_criteria:
-        # TODO: define sum_means and sum_prev_means
+    def initialize():
+        mean = np.asmatrix([[random.randint(1, 255)],[random.randint(1, 255)],[random.randint(1, 255)]])
+        # generate a random positive-semidefinete matrix as covariance matrix
+        A = np.random.random((3,3))*20
+        cov = np.dot(A, A.transpose())
+        scaling = random.random() * 5.0
+        return [scaling,mean,cov]
+
+    params = [initialize() for cluster in range(K)]
+    # Structure of para:
+    # [[scale,mean,covariance],[scale,mean,covariance],[scale,mean,covariance]...]
+    # scale is a int. Mean is a 3x1 matrix. Covariance is a 3x3 matrix
+
+    # total_mean is the sum of all mean from different clusters
+    total_mean = np.full((K,3, 3), -9999)
+    prev_total_mean = np.full((K,3, 3), 9999)
+    iter = 0
+
+    # return true if MLE converges. Return false otherwise
+    def check_convergence(total_mean, prev_toal_mean, tau):
+        sum = 0
+        print("For cluster 1, total_mean and Prev_total_mean are as follow\n")
+        print("curr mean: ", total_mean[0])
+        print("prev mean: ", prev_total_mean[0])
+        for cluster in range(len(prev_toal_mean)):
+            sum += np.linalg.norm(total_mean[cluster]-prev_total_mean[cluster])
+        print("Check convergence difference: ", sum)
+        return sum >= tau
+
+    while iter < max_iter and check_convergence(total_mean,prev_total_mean,tau):
+        print("iter: ", iter)
+        # update prev total mean
+        prev_total_mean = copy.deepcopy(total_mean)
+
         # Expectation step - assign points to clusters, get cluster weight
         weights = []
         for cluster in range(K):
-            cluster_weights = []
+            # weight for a single cluster
+            cluster_weights = np.zeros((img.shape[0], img.shape[1]))
+            # cumulated weights add up all weights on a given pixel -- serving as denominator
+            cumulated_weights = np.zeros((img.shape[0], img.shape[1]))
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
-            print("Current scaliing for cluster ", cluster)
-            print("Current mean for cluster ", mean)
-            print("Current cov for cluster \n", cov)
+            # print("Current scaliing for cluster ", cluster_scaling)
+            # print("Current mean for cluster ", cluster_mean)
+            # print("Current cov for cluster \n", cluster_cov)
+
 
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
-                    likelihood = testGMM.get_likelihood(pix, cluster_mean, cluster_cov)
-                    denom = 0
+                    try:
+                        likelihood = testGMM.get_likelihood(pix, cluster_mean, cluster_cov)
+                    except:
+                        likelihood = 0
+                    likelihood = likelihood if likelihood != 0 else sys.float_info.min
+                    # if likelihood == 0:
+                    #     print("likelihood is zero")
+                    #     print("curr_pix: \n",pix)
+                    #     print("cluster_mean: \n", cluster_mean)
+                    #     print("cluster cov: \n", cluster_cov)
+                    #     sys.exit()
+                    ## calculate weight at position (w, h)
+                    weight = cluster_scaling * likelihood
+                    cumulated_weights[w][h] += weight
+                    cluster_weights[w][h] = weight # probability of each pixel belonging to this cluster
 
-                    for k in range(K):
-                        k_scaling, k_mean, k_cov = params[cluster]
-                        k_likelihood = testGMM.get_likelihood(pix, k_mean, k_cov)
-                        denom += k_scaling * k_likelihood
-
-                    weight = cluster_scaling * likelihood / denom
-                    cluster_weights.append(weight) # probability of each pixel belonging to this cluster
             weights.append(cluster_weights) # weights for all clusters 1 to K,
-            # weights[i][j]is the probability of the jth pixel belonging to the ith cluster
+            #weights[i][w][h]is the probability of the (w,h) pixel belonging to the ith cluster
+        for cluster in range(K):
+            weights[cluster] = np.divide(weights[cluster], cumulated_weights)
 
         # Maximization step - get new scaling, mean, and cov for each cluster
-        for i in range(K):
-            j = 0   # pixel index
-            new_scaling = 0
-            new_cov_num = []
-            new_mean_nom = 0
-            sum_cluster_weights = 0
+        for cluster in range(K):
+            mean_sum = np.zeros((3,1)) # sums all weight*pixel RGB value on image
+            cov_sum = np.zeros((3,3))
+            sum_weights = np.sum(weights[cluster]) # sum of all the weights given a cluster
+            for w in range(len(img[:, 0, 0])):
+                for h in range(len(img[0, :, 0])):
+                    pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
+                    # calculate mean
+                    mean_sum += np.multiply(weights[cluster][w][h],pix)
+
+            new_mean = np.divide(mean_sum, sum_weights)
 
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
-                    new_mean_nom += weights[i][j] * pix
-                    sum_cluster_weights += weights[i][j]
-                    j += 1
-            new_mean = new_mean_nom / sum_cluster_weights
-            new_scaling = sum_cluster_weights / (w*h)
+                    # calculate covariance
+                    cov_sum += np.multiply(weights[cluster][w][h], (pix - new_mean))@((pix - new_mean).T)
+            new_cov = np.divide(cov_sum, sum_weights)
+            new_scaling = sum_weights / (img.shape[0]*img.shape[1])
+            mean_sum += mean_sum
 
-            for w in range(len(img[:, 0, 0])):
-                for h in range(len(img[0, :, 0])):
-                    pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
-                    new_cov_num += weights[i][j] * (pix - new_mean).dot((pix - new_mean).T)
-            new_cov = new_cov_num / sum_cluster_weights
-
+            total_mean[cluster] = new_mean
+            print("new mean at cluster ", cluster, "is ", new_mean )
             # update model
-            params[i] = (new_scaling, new_mean, new_cov)
+            params[cluster] = (new_scaling, new_mean, new_cov)
+        print("-----------------")
+        iter += 1
+    # store weights to .npy
+    if not os.path.exists("weights"):
+        os.mkdir("weights")
+    else:
+        digit = re.findall(r'\d+\d+\d*',img_name)
+        file_name = str(digit[0])+"_weight.npy"
+        with open(os.path.join("weights",file_name), "wb") as f:
+            np.save(f,params)
 
-        i += 1
+
+if __name__ == "__main__":
+    input_dir = "train_images"
+    for img_name in os.listdir(input_dir):
+        img = os.path.join(input_dir, img_name)
+        trainGMM(2,200,img)
+        print("Finish Training for ", img)
+        break
+
+
