@@ -24,7 +24,7 @@ def trainGMM(K, max_iter, img_name):
         # generate a random positive-semidefinete matrix as covariance matrix
         A = np.random.random((3,3))*20
         cov = np.dot(A, A.transpose())
-        scaling = random.random() * 5.0
+        scaling = (random.random() * 5.0)
         return [scaling,mean,cov]
 
     params = [initialize() for cluster in range(K)]
@@ -41,8 +41,8 @@ def trainGMM(K, max_iter, img_name):
     def check_convergence(total_mean, prev_toal_mean, tau):
         sum = 0
         print("For cluster 1, total_mean and Prev_total_mean are as follow\n")
-        print("curr mean: ", total_mean[0])
-        print("prev mean: ", prev_total_mean[0])
+        print("curr mean: \n", total_mean[0])
+        print("prev mean: \n", prev_total_mean[0])
         for cluster in range(len(prev_toal_mean)):
             sum += np.linalg.norm(total_mean[cluster]-prev_total_mean[cluster])
         print("Check convergence difference: ", sum)
@@ -56,15 +56,12 @@ def trainGMM(K, max_iter, img_name):
         # Expectation step - assign points to clusters, get cluster weight
         weights = []
         for cluster in range(K):
+            print('cluster1 =',cluster)
             # weight for a single cluster
             cluster_weights = np.zeros((img.shape[0], img.shape[1]))
             # cumulated weights add up all weights on a given pixel -- serving as denominator
             cumulated_weights = np.zeros((img.shape[0], img.shape[1]))
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
-            # print("Current scaliing for cluster ", cluster_scaling)
-            # print("Current mean for cluster ", cluster_mean)
-            # print("Current cov for cluster \n", cluster_cov)
-
 
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
@@ -73,7 +70,7 @@ def trainGMM(K, max_iter, img_name):
                         likelihood = testGMM.get_likelihood(pix, cluster_mean, cluster_cov)
                     except:
                         likelihood = 0
-                    likelihood = likelihood if likelihood != 0 else sys.float_info.min
+                    likelihood = likelihood if likelihood != 0 else 1e-50
                     # if likelihood == 0:
                     #     print("likelihood is zero")
                     #     print("curr_pix: \n",pix)
@@ -88,7 +85,9 @@ def trainGMM(K, max_iter, img_name):
             weights.append(cluster_weights) # weights for all clusters 1 to K,
             #weights[i][w][h]is the probability of the (w,h) pixel belonging to the ith cluster
         for cluster in range(K):
-            weights[cluster] = np.divide(weights[cluster], cumulated_weights)
+            print('cluster2 =',cluster)
+            if (weights[cluster]==np.nan).any() or  (cumulated_weights==np.nan).any():print('fvck!')
+            weights[cluster] = np.divide(np.double(weights[cluster]), np.double(cumulated_weights))
 
         # Maximization step - get new scaling, mean, and cov for each cluster
         for cluster in range(K):
@@ -99,21 +98,21 @@ def trainGMM(K, max_iter, img_name):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
                     # calculate mean
-                    mean_sum += np.multiply(weights[cluster][w][h],pix)
+                    mean_sum += np.multiply(weights[cluster][w][h], pix)
 
-            new_mean = np.divide(mean_sum, sum_weights)
+            new_mean = np.divide(np.double(mean_sum), np.double(sum_weights))
 
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
                     # calculate covariance
                     cov_sum += np.multiply(weights[cluster][w][h], (pix - new_mean))@((pix - new_mean).T)
-            new_cov = np.divide(cov_sum, sum_weights)
+            new_cov = np.divide(np.double(cov_sum), np.double(sum_weights))
             new_scaling = sum_weights / (img.shape[0]*img.shape[1])
             mean_sum += mean_sum
 
             total_mean[cluster] = new_mean
-            print("new mean at cluster ", cluster, "is ", new_mean )
+            print("new mean at cluster ", cluster, "is \n", new_mean )
             # update model
             params[cluster] = (new_scaling, new_mean, new_cov)
         print("-----------------")
@@ -129,10 +128,11 @@ def trainGMM(K, max_iter, img_name):
 
 
 if __name__ == "__main__":
+    np.seterr(all='raise')
     input_dir = "train_images"
     for img_name in os.listdir(input_dir):
         img = os.path.join(input_dir, img_name)
-        trainGMM(2,200,img)
+        trainGMM(5,2,img)
         print("Finish Training for ", img)
         break
 
