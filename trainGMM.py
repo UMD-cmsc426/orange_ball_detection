@@ -11,9 +11,9 @@ import copy
 # k: int, number of guassian distribution
 # max_iter: int, maximum number of step in optimization
 # img_name: strings, the relative path to single image, i.e. "train_images/032.jpg"
-def trainGMM(K, max_iter, img_name):
+def trainGMM(K, max_iter, img, img_name):
     # read img
-    img = cv2.imread(img_name)
+    # img = cv2.imread(img_name)
     # user defined converge threshold
     tau = 0.00000000000000001
 
@@ -69,7 +69,13 @@ def trainGMM(K, max_iter, img_name):
                     except:
                         likelihood = 0
                     likelihood = likelihood if likelihood != 0 else 1e-40
-
+                    # if likelihood == 0:
+                    #     print("likelihood is zero")
+                    #     print("curr_pix: \n",pix)
+                    #     print("cluster_mean: \n", cluster_mean)
+                    #     print("cluster cov: \n", cluster_cov)
+                    #     sys.exit()
+                    ## calculate weight at position (w, h)
                     weight = cluster_scaling * likelihood
                     cumulated_weights[w][h] += weight
                     cluster_weights[w][h] = weight # probability of each pixel belonging to this cluster

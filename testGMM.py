@@ -4,13 +4,16 @@ import sys
 import re
 import os
 
-def testGMM(K, threshold, img):
-    digit = re.findall(r'\d+\d+\d*', img)
+
+def testGMM(K, threshold, img, img_name):
+    digit = re.findall(r'\d+\d+\d*', img_name)
     file_name = str(digit[0]) + "_weight.npy"
     with open(os.path.join("weights", file_name), "wb") as f:
         params = np.load(f)
 
-    pixels = []
+    cluster = []
+    mask = np.zeros((img.shape[:-1]))
+
     for w in range(len(img[:, 0, 0])):
         for h in range(len(img[0, :, 0])):
             pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
@@ -22,9 +25,10 @@ def testGMM(K, threshold, img):
                 posterior += scaling * likelihood
             # classify
             if posterior >= threshold:
-                pixels.append(pix)
+                cluster.append(pix)
+                mask[w][h] = 1
 
-    return pixels
+    return cluster, mask
 
 
 def get_likelihood(pixel, mean, cov):
