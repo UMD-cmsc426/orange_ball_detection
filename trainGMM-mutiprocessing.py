@@ -11,27 +11,18 @@ import time
 
 
 def calculate_likelihood(w, img, cluster_mean, cluster_cov, cluster_scaling, shared:mp.Queue):
-    # print('fvck')
-    # def calculate_likelihood(w, img, cluster_mean, cluster_cov, cluster_scaling, shared):
-    # print('fvck')
     tem_weight = np.zeros(len(img[0, :, 0]))
     # print("shape of tem weights ", tem_weight.shape)
     for h in range(len(img[0, :, 0])):
         pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
         #print('[in process] row {} started!'.format(h))
         try:
-            likelihood = max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov), 1e-40)
+            likelihood = min(max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov), 1e-40), 1.e40)
         except:
             likelihood = 1e-40
         tem_weight[h] = (likelihood * cluster_scaling)
 
-    # print('likely')
-
-
     cumulated_weights, cluster_weights = shared.get()
-    # print('i got it!')
-    # print("tem weight shape: ", [tem_weight][0].shape)
-    # print("cluster weights shape: ", cluster_weights[w].shape)
     cluster_weights[w] = [tem_weight][0]
     cumulated_weights[w] += [tem_weight][0]
     shared.put([cumulated_weights, cluster_weights])
@@ -56,7 +47,7 @@ def trainGMM(K, max_iter, img_name):
         # generate a random positive-semidefinete matrix as covariance matrix
         A = np.random.random((3, 3)) * 20
         cov = np.dot(A, A.transpose())
-        scaling = (random.random() * 5.0)
+        scaling = (random.random() * 3.0)
         return [scaling, mean, cov]
 
     params = [initialize() for cluster in range(K)]
@@ -79,7 +70,6 @@ def trainGMM(K, max_iter, img_name):
         for cluster in range(len(prev_toal_mean)):
             sum += np.linalg.norm(total_mean[cluster] - prev_total_mean[cluster])
         print("Check convergence difference: ", sum)
-        print()
         return sum >= tau
 
     while iter < max_iter and check_convergence(total_mean, prev_total_mean, tau):
@@ -110,10 +100,7 @@ def trainGMM(K, max_iter, img_name):
             pool.join()
             # end of multiprocessing
             [cumulated_weights, cluster_weights] = shared.get()
-            print("cumulated_weights shape after join ", cumulated_weights.shape)
-            print("cluster_weights shape after join ", cluster_weights.shape)
             weights[cluster] = cluster_weights  # weights for all clusters 1 to K,
-            print("weights shape after join ", weights[cluster].shape)
             if (weights[cluster] == 0).all():
                 raise Exception("all weights are zero")
             if (weights[cluster] == 0).any():
@@ -136,7 +123,6 @@ def trainGMM(K, max_iter, img_name):
                     mean_sum += np.multiply(weights[cluster][w][h], pix)
 
             new_mean = np.divide(np.double(mean_sum), np.double(sum_weights))
-            print("new mean ", new_mean)
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
@@ -170,6 +156,6 @@ if __name__ == "__main__":
     for img_name in os.listdir(input_dir):
         img = os.path.join(input_dir, img_name)
         print('img:', img)
-        trainGMM(2, 2, img)
+        trainGMM(5, 200, img)
         print("Finish Training for ", img)
         break
