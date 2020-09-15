@@ -6,7 +6,8 @@ import sys
 import testGMM
 import re
 import copy
-
+import multiprocessing as mp
+import time
 
 
 # parameters:
@@ -54,7 +55,7 @@ def trainGMM(K, max_iter, img_name):
         prev_total_mean = copy.deepcopy(total_mean)
 
         # Expectation step - assign points to clusters, get cluster weight
-        weights = np.zeros()
+        weights =[ [] for _ in range(K) ]
         for cluster in range(K):
             print('cluster1 =',cluster)
             # weight for a single cluster
@@ -63,25 +64,50 @@ def trainGMM(K, max_iter, img_name):
             cumulated_weights = np.zeros((img.shape[0], img.shape[1]))
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
 
-            #----- multiprocessing start here
+            shared = mp.Queue()
+            shared.put([cumulated_weights,cluster_weights])
+            def calculate_likelihood(pix, cluster_mean, cluster_cov,cluster_scaling, shared):
+                [cumulated_weights, cluster_weights] = shared.get()
+                try:
+                    likelihood = max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov),1e-40)
+                except:
+                    likelihood = 1e-40
+                weight = cluster_scaling * likelihood
+                cluster_weights[w][h] = weight
+                cumulated_weights[w][h] += weight
+                cluster_weights[w][h] = weight
+                shared.put([cumulated_weights,cluster_weights])
+
+            # start multiprocessing pool
+            pool = mp.Pool()
             for w in range(len(img[:, 0, 0])):
                 for h in range(len(img[0, :, 0])):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
-                    try:
-                        likelihood = max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov),1e-40)
-                    except:
-                        likelihood = 0
-                    likelihood = likelihood if likelihood != 0 else 1e-40
-                    weight = cluster_scaling * likelihood
-                    cumulated_weights[w][h] += weight   # multiprocessing shared variable
-                    cluster_weights[w][h] = weight # multiprocessing not shared variable
-            weights.append(cluster_weights) # weights for all clusters 1 to K,
-            #---- end of mutiprocessing here; join here
+                    pool.apply_async(func=calculate_likelihood, args=(pix, cluster_mean, cluster_cov,cluster_scaling, cluster_weights,shared))
+            pool.close()
+            pool.join()
+            # end of multiprocessing
+            [cumulated_weights, cluster_weights] = shared.get()
+            weights[cluster] = cluster_weights # weights for all clusters 1 to K,
+
+            # #----- multiprocessing start here
+            # for w in range(len(img[:, 0, 0])):
+            #     for h in range(len(img[0, :, 0])):
+            #         pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
+            #         try:
+            #             likelihood = max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov),1e-40)
+            #         except:
+            #             likelihood = 0
+            #         likelihood = likelihood if likelihood != 0 else 1e-40
+            #         weight = cluster_scaling * likelihood
+            #         cumulated_weights[w][h] += weight   # multiprocessing shared variable
+            #         cluster_weights[w][h] = weight # multiprocessing not shared variable
+            # weights.append(cluster_weights) # weights for all clusters 1 to K,
+            # #---- end of mutiprocessing here; join here
 
             #weights[i][w][h]is the probability of the (w,h) pixel belonging to the ith cluster
         for cluster in range(K):
             print('cluster2 =',cluster)
-            if (weights[cluster]==np.nan).any() or  (cumulated_weights==np.nan).any():print('fvck!')
             weights[cluster] = np.divide(np.double(weights[cluster]), np.double(cumulated_weights))
 
         # ---- Another multiprocessing start here
@@ -126,7 +152,7 @@ def trainGMM(K, max_iter, img_name):
 
 
 if __name__ == "__main__":
-    #np.seterr(all='raise')
+    np.seterr(all='raise')
     input_dir = "train_images"
     for img_name in os.listdir(input_dir):
         img = os.path.join(input_dir, img_name)
