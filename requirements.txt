@@ -1,1 +1,5 @@
 opencv-python
+numpy
+scipy
+matplotlib
+opencv-contrib-python
