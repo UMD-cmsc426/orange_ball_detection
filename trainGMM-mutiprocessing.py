@@ -22,12 +22,14 @@ def calculate_likelihood(w, img, cluster_mean, cluster_cov, cluster_scaling, sha
             likelihood = 1e-40
         tem_weight[h] = (likelihood * cluster_scaling)
 
+    #t1 = time.time()
     cumulated_weights, cluster_weights = shared.get()
     cluster_weights[w] = [tem_weight][0]
     cumulated_weights[w] += [tem_weight][0]
     shared.put([cumulated_weights, cluster_weights])
+    #print('it took',time.time()-t1,'s')
     # print('i released it!')
-    sys.stdout.flush()
+    # sys.stdout.flush()
 
 # parameters:
 # k: int, number of guassian distribution
@@ -40,7 +42,7 @@ def trainGMM(K, max_iter, img_name):
     # read img
     img = cv2.imread(img_name)
     # user defined converge threshold
-    tau = 0.00000000000000001
+    tau = 1
 
     def initialize():
         mean = np.asmatrix([[random.randint(1, 255)], [random.randint(1, 255)], [random.randint(1, 255)]])
@@ -156,6 +158,5 @@ if __name__ == "__main__":
     for img_name in os.listdir(input_dir):
         img = os.path.join(input_dir, img_name)
         print('img:', img)
-        trainGMM(5, 200, img)
+        trainGMM(5, 100, img)
         print("Finish Training for ", img)
-        break

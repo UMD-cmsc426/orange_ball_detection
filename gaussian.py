@@ -11,12 +11,10 @@ def cal_mean_cov(img):
     l, w, h = img.shape
     mean = [[np.sum(img[:,:,0])/(l*w)],[np.sum(img[:,:,1])/(l*w)],[np.sum(img[:,:,2])/(l*w)]]
     cov = np.zeros((3,3),)
-    #R_value = []
     for width in range(len(img[:,0,0])):
         for length in range(len(img[0,:,0])):
             RGB_value = [[img[width][length][0]],[img[width][length][1]],[img[width][length][2]]]
             cov = cov + (np.asmatrix(RGB_value) - np.asmatrix(mean))@(np.asmatrix(RGB_value) - np.asmatrix(mean)).T
-            #R_value.append(img[width][length][0])
     cov = cov/(l*w)
     return mean,cov
 
