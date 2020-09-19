@@ -5,21 +5,7 @@ import os
 
 import cv2
 import numpy as np
-
-
-# Define a function that generates a RGB image's mean value and covariance.
-# Output shape: mean-（3x1） covariacne-(3x3)
-def cal_mean_cov(img):
-    l, w, h = img.shape
-    mean = [[np.sum(img[:, :, 0]) / (l * w)], [np.sum(img[:, :, 1]) / (l * w)], [np.sum(img[:, :, 2]) / (l * w)]]
-    cov = np.zeros((3, 3), )
-    for width in range(len(img[:, 0, 0])):
-        for length in range(len(img[0, :, 0])):
-            RGB_value = [[img[width][length][0]], [img[width][length][1]], [img[width][length][2]]]
-            cov = cov + (np.asmatrix(RGB_value) - np.asmatrix(mean)) @ (np.asmatrix(RGB_value) - np.asmatrix(mean)).T
-    cov = cov / (l * w)
-    return mean, cov
-
+import sys
 
 # Define a vectorized function that generates a RGB image's mean value and covariance.
 # input shape: X:(num of pixels, 3)
@@ -28,7 +14,9 @@ def cal_mean_cov_vectorized(X):
     N, D = X.shape
     mean = X.mean(axis=0)  # compute mean
     cov = np.matmul((X - mean).T, (X - mean)) / (N - 1)  # compute covariance
+    print("mean_size: ", mean)
     return mean, cov
+
 
 
 def single_gussian(img_name, input_dir, output_dir, tau):
@@ -40,6 +28,7 @@ def single_gussian(img_name, input_dir, output_dir, tau):
 
     # vectorized algorithm
     mean, cov = cal_mean_cov_vectorized(X)
+
 
     # calculate likelihood using gaussian distribution
     # each pixel is row of X
@@ -71,6 +60,25 @@ def single_gussian(img_name, input_dir, output_dir, tau):
     print("Finish Generating mask for image ", str(img_name))
 
 
+# if __name__ == "__main__":
+#     # load data
+#     input_dir = "train_images"  # path to the train image dataset
+#     # output directory
+#     if not (os.path.isdir("single_gaussian_result")):
+#         os.mkdir("single_gaussian_result")
+#     output_dir = "single_gaussian_result"
+#     # User defined threshold
+#     tau = 0.00000000000000001
+#     # Number of process
+#     print("Starting #", mp.cpu_count(), "of process")
+#     pool = mp.Pool()
+#     for img in os.listdir(input_dir):
+#         pool.apply_async(func=single_gussian, args=(img, input_dir, output_dir, tau,))
+#         break
+#     pool.close()
+#     pool.join()
+#     print("All Process are finished")
+#     print("Single gussian result are stored in the directory called single_guassian_result")
 if __name__ == "__main__":
     # load data
     input_dir = "train_images"  # path to the train image dataset
@@ -80,12 +88,7 @@ if __name__ == "__main__":
     output_dir = "single_gaussian_result"
     # User defined threshold
     tau = 0.00000000000000001
-    # Number of process
-    print("Starting #", mp.cpu_count(), "of process")
-    pool = mp.Pool()
     for img in os.listdir(input_dir):
-        pool.apply_async(func=single_gussian, args=(img, input_dir, output_dir, tau,))
-    pool.close()
-    pool.join()
+        single_gussian(img, input_dir, output_dir, tau)
+        break
     print("All Process are finished")
-    print(" Single gussian result are stored in the directory called single_guassian_result")

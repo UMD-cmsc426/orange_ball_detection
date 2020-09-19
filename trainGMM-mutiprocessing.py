@@ -27,9 +27,6 @@ def calculate_likelihood(w, img, cluster_mean, cluster_cov, cluster_scaling, sha
     cluster_weights[w] = [tem_weight][0]
     cumulated_weights[w] += [tem_weight][0]
     shared.put([cumulated_weights, cluster_weights])
-    #print('it took',time.time()-t1,'s')
-    # print('i released it!')
-    # sys.stdout.flush()
 
 # parameters:
 # k: int, number of guassian distribution
