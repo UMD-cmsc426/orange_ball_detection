@@ -22,6 +22,7 @@ def trainGMM(K, max_iter, img, img_name):
         # generate a random positive-semidefinete matrix as covariance matrix
         A = np.random.random((3,3))*20
         cov = np.dot(A, A.transpose())
+        print("cov", cov)
         scaling = (random.random() * 5.0)
         return [scaling, mean, cov]
 

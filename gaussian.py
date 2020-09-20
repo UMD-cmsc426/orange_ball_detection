@@ -14,7 +14,6 @@ def cal_mean_cov_vectorized(X):
     N, D = X.shape
     mean = X.mean(axis=0)  # compute mean
     cov = np.matmul((X - mean).T, (X - mean)) / (N - 1)  # compute covariance
-    print("mean_size: ", mean)
     return mean, cov
 
 
@@ -37,7 +36,6 @@ def single_gussian(img_name, input_dir, output_dir, tau):
     X2 = X - mean
     exponent = (-0.5) * (np.dot(X2, sigma_inv) * X2).sum(1)
     likelihood = constant_in_likelihood * np.exp(exponent)
-
     # posterior
     prior = 0.5
     posterior = prior * likelihood
