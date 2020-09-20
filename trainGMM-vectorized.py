@@ -33,8 +33,9 @@ def check_convergence(total_mean, prev_total_mean, tau):
 # In order to apply "np.apply_along_aixs" function with argument input, we have to define our own along_axis function
 def along_axis(M, argument):
     return np.apply_along_axis(expoent_vectorized, 2, M, argument)
+# mean_diff here is transposed, i.e. mean_diff.shape = (1, 3)
 def expoent_vectorized(mean_diff_transposed, sigma_inv):
-    return (-0.5) * (np.dot(mean_diff_transposed.T, sigma_inv) * mean_diff_transposed.T)
+    return (-0.5) * (mean_diff_transposed @ sigma_inv @ mean_diff_transposed.T)
 # parameters:
 # k: int, number of guassian distribution
 # max_iter: int, maximum number of step in optimization
@@ -77,9 +78,8 @@ def trainGMM(K, max_iter, img, img_name):
             populated_mean= flatted_mean.reshape((img_w,img_h, img_channel))
             mean_diff = img - populated_mean
             # apply limit to exponent to prevent any overflow or underflow
-            exponent = np.minimum(np.maximum(along_axis(mean_diff, sigma_inv), 1e-40), 1e40)
+            exponent = np.minimum(np.maximum(along_axis(mean_diff, sigma_inv), 1e-40), 1e20)
             likelihood =constant_in_likelihood * np.exp(exponent)
-            print("shape of likelihood: ", likelihood.shape)
 
             # weight for a single cluster
             cluster_weights = cluster_scaling * likelihood
