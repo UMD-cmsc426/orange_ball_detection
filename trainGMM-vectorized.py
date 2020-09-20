@@ -30,7 +30,11 @@ def check_convergence(total_mean, prev_total_mean, tau):
     print("Check convergence difference: ", sum)
     return sum >= tau
 
-
+# In order to apply "np.apply_along_aixs" function with argument input, we have to define our own along_axis function
+def along_axis(M, argument):
+    return np.apply_along_axis(expoent_vectorized, 2, M, argument)
+def expoent_vectorized(mean_diff_transposed, sigma_inv):
+    return (-0.5) * (np.dot(mean_diff_transposed.T, sigma_inv) * mean_diff_transposed.T)
 # parameters:
 # k: int, number of guassian distribution
 # max_iter: int, maximum number of step in optimization
@@ -60,42 +64,27 @@ def trainGMM(K, max_iter, img, img_name):
         weights = np.asarray([np.zeros((img.shape[0], img.shape[1])) for _ in range(K)])
         for cluster in range(K):
             print('cluster1 =',cluster)
-            # weight for a single cluster
-            cluster_weights = np.zeros((img.shape[0], img.shape[1]))
             # cumulated weights add up all weights on a given pixel -- serving as denominator
-            cumulated_weights = np.zeros((img.shape[0], img.shape[1]))
+            cumulated_weights = np.zeros((img_w, img_h))
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
 
-
+            # Calculate likelihood
             constant_in_likelihood = 1 / (math.sqrt(((2 * math.pi) ** 3) * np.linalg.det(cluster_cov)))
             sigma_inv = np.linalg.inv(cluster_cov)
             # populate mean here
-            flatted_mean = np.repeat(cluster_mean, img_h*img_w, axis=0)
+            flatted_mean = np.repeat(cluster_mean, img_w*img_h, axis=0)
             flatted_mean = np.asarray(flatted_mean)
-            populated_mean= flatted_mean.reshape((img_h,img_w, img_channel))
+            populated_mean= flatted_mean.reshape((img_w,img_h, img_channel))
             mean_diff = img - populated_mean
-
-            # TODO: vectorize this step
-            exponent = (-0.5) * (np.dot(mean_diff, sigma_inv) * mean_diff).sum(1)
-            # apply limit to likelihood to prevent any overflow or underflow
-            likelihood = min(max(constant_in_likelihood * np.exp(exponent), 1e-40), 1e40)
+            # apply limit to exponent to prevent any overflow or underflow
+            exponent = np.minimum(np.maximum(along_axis(mean_diff, sigma_inv), 1e-40), 1e40)
+            likelihood =constant_in_likelihood * np.exp(exponent)
             print("shape of likelihood: ", likelihood.shape)
 
-
-            #  -------  Need vectorize ---------
-            # for w in range(len(img[:, 0, 0])):
-            #     for h in range(len(img[0, :, 0])):
-            #         pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
-            #         try:
-            #             likelihood = max(testGMM.get_likelihood(pix, cluster_mean, cluster_cov),1e-40)
-            #         except:
-            #             likelihood = 0
-            #         likelihood = likelihood if likelihood != 0 else 1e-40
-            #         weight = cluster_scaling * likelihood
-            #         cumulated_weights[w][h] += weight
-            #         cluster_weights[w][h] = weight # probability of each pixel belonging to this cluster
-            #
-            # weights[cluster] = cluster_weights # weights for all clusters 1 to K,
+            # weight for a single cluster
+            cluster_weights = cluster_scaling * likelihood
+            cumulated_weights += cluster_weights
+            weights[cluster] = cluster_weights
             # Sanity Check
             if (weights[cluster] == 0).all():
                 raise Exception("all weights are zero")
