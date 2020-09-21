@@ -16,15 +16,15 @@ def initialize():
     # generate a random positive-semidefinete matrix as covariance matrix
     A = np.random.random((3, 3)) * 60
     cov = np.dot(A, A.transpose())
-    scaling = (random.random() * 5.0)
+    scaling = (random.random() * 5.0)+0.01
     return [scaling, mean, cov]
 
 
 # return true if MLE converges. Return false otherwise
 def check_convergence(total_mean, prev_total_mean, tau):
     sum = np.sum(np.apply_along_axis(np.linalg.norm,1, total_mean - prev_total_mean))
-    print("Current Mean: \n", total_mean)
-    print("Previous Mean: \n", prev_total_mean)
+    # print("Current Mean: \n", total_mean)
+    # print("Previous Mean: \n", prev_total_mean)
     print("Current Convergence difference: ", sum)
     return sum <= tau
 
@@ -34,11 +34,10 @@ def along_axis(M, argument):
 # mean_diff here is transposed, i.e. mean_diff_transposed.shape = (1, 3)
 def expoent_vectorized(mean_diff_transposed, sigma_inv):
     _mean_diff = np.asmatrix(mean_diff_transposed).T
-    result = np.asscalar((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff))
+    result = ((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff)).item(0)
+    result = result if result != 0 else -1
     return result
-def covariance_vectorized (mean_diff_transposed):
-    mean_diff = np.asmatrix(mean_diff_transposed).T
-    return [mean_diff@(mean_diff.T)]
+
 '''
 parameters:
 k: int, number of guassian distribution
@@ -48,7 +47,7 @@ img_name: strings, the relative path to single image, i.e. "train_images/032.jpg
 '''
 def trainGMM(K, max_iter, img, img_name):
     # user defined converge threshold
-    tau = 1e-10
+    tau = 1e-5
     # Structure of para:
     # [[scale,mean,covariance],[scale,mean,covariance],[scale,mean,covariance]...]
     # scale is a int. Mean is a 3x1 matrix. Covariance is a 3x3 matrix
@@ -79,6 +78,8 @@ def trainGMM(K, max_iter, img, img_name):
 
             # TODO: PROBLEM: the likelihood are the same across the image in one cluster
             # Calculate likelihood
+            # if np.linalg.det(cluster_cov) == 0:
+            #     raise Exception("determinent is zero, covariance matrix is: ", cluster_cov)
             constant_in_likelihood = 1 / (math.sqrt(((2 * math.pi) ** 3) * np.linalg.det(cluster_cov)))
             sigma_inv = np.linalg.inv(cluster_cov)
             # populate mean here
@@ -88,26 +89,26 @@ def trainGMM(K, max_iter, img, img_name):
             populated_mean = np.moveaxis(populated_mean, 0, -1)
             mean_diff = img - populated_mean
 
-            # apply limit to exponent to prevent any overflow or underflow
-            exponent = np.minimum(np.maximum(along_axis(mean_diff, sigma_inv), 1e-60), 1e20)
+            exponent = along_axis(mean_diff, sigma_inv)
             likelihood =constant_in_likelihood * np.exp(exponent)
+            likelihood[likelihood <= 0] = 0.1
 
-            # weight for a single cluster
+            #print("likelihood: ", likelihood)
+            # weight for a single cluster.
             cluster_weights = cluster_scaling * likelihood
             cumulated_weights += cluster_weights
             weights[cluster] = cluster_weights
-            # Sanity Check
-            if (weights[cluster] == 0).all():
-                raise Exception("all weights are zero")
-            if (weights[cluster] == 0).any():
-                raise Exception("one of the weights is zero")
+            # # Sanity Check
+            # if (weights[cluster] == 0).all():
+            #     raise Exception("all weights are zero")
+            # if (weights[cluster] == 0).any():
+            #     raise Exception("one of the weights is zero")
             # ---------end of vectorize ---------
 
         # broadcast cumulated_weights to shape [K, img_w, img_h]
         weights = weights/(np.tile(cumulated_weights[np.newaxis,:], (K,1,1)))
         # Maximization step - get new scaling, mean, and cov for each cluster
         for cluster in range(K):
-            mean_sum = np.zeros((img_w, img_h)) # sums all weight*pixel RGB value on image
             cov_sum = np.zeros((3, 3))
             sum_weights = np.sum(weights[cluster]) # sum of all the weights given a cluster
 
@@ -117,26 +118,24 @@ def trainGMM(K, max_iter, img, img_name):
             weighted_pixel = np.multiply(img, broad_casted_weight) # shape: (img_h, img_w, 3)
             new_mean = np.asarray([[np.sum(weighted_pixel[:,:,0])],[np.sum(weighted_pixel[:,:,1])],[np.sum(weighted_pixel[:,:,2])]]) / sum_weights
             # TODO: Calculate new covariance using vectorization:
-            # populate new mean to shape (img_h, img_w, 3)
-            # flatted_mean = np.repeat(cluster_mean, img_w * img_h, axis=0)
-            # flatted_mean = np.asarray(flatted_mean)
-            # populated_mean = flatted_mean.reshape((img_w, img_h, img_channel))
-            # _mean_diff = img - populated_mean
-            # new_covariance = np.apply_along_axis(covariance_vectorized, 2, _mean_diff) # new_covariance shape: (img_g, img_w, 1, 3,3)
-            # raise Exception("Stop")
-
             # ------- need vectorize --------
-            for w in range(len(img[:, 0, 0])):
-                for h in range(len(img[0, :, 0])):
+            for w in range(img_w):
+                for h in range(img_h):
                     pix = np.asmatrix([[img[w][h][0]], [img[w][h][1]], [img[w][h][2]]])
                     # calculate covariance
                     cov_sum += np.multiply(weights[cluster][w][h], (pix - new_mean))@((pix - new_mean).T)
             # ---------end of vectorize ---------
             new_cov = np.divide(np.double(cov_sum), np.double(sum_weights))
+            if (np.array_equal(new_cov, np.zeros((3,3)))):
+                raise Exception("zero covariance")
             new_scaling = sum_weights / (img_w*img_h)
-            mean_sum += mean_sum
-
             total_mean[cluster] = new_mean
+            print(" --- --- --- ")
+            print("For cluster ", cluster, ": ")
+            print("New mean", " is \n", new_mean)
+            print("New covariance is: \n", new_cov)
+            print("New scaling is: ", new_scaling)
+
             # update model
             params[cluster] = (new_scaling, new_mean, new_cov)
 
