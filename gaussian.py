@@ -13,7 +13,7 @@ import time
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
-output_dir = "single_gaussian_result"
+output_dir = "results"
 
 # User defined threshold
 tau = 0.00000017
@@ -123,8 +123,8 @@ def test(orange_mean, orange_cov):
 #     print("Single gussian result are stored in the directory called single_guassian_result")
 if __name__ == "__main__":
     # output directory
-    if not (os.path.isdir("single_gaussian_result")):
-        os.mkdir("single_gaussian_result")
+    if not (os.path.isdir(output_dir)):
+        os.mkdir(output_dir)
     orange_mean, orange_cov = train_on_orange_pixels(extract_orange_pixels())
     print("orange_mean: "+ str(orange_mean)) # BGR, not RGB
     print("orange_cov: \n" + str(orange_cov))

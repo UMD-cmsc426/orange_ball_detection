@@ -1,41 +1,45 @@
-import trainGMM
-import testGMM
-import measureDepth
-import cv2
+from trainGMM import *
+from testGMM import *
+from measureDepth import *
 import os
+import cv2
 import numpy as np
+import random
+from gaussian import *
 
 
-def gmm(training):
-    # Set threshold and number of gaussians
-    threshold = 0.0001
-    K = 5
+train_dir = "train_images"# path to the train image dataset
+test_dir = "test_images"# path to the train image dataset
+# output directory
+output_dir = "results"
+
+
+def gmm():
+    # User defined threshold
+    tau_train = 0.7
+    tau_test = 0.0000004
+    prior = 0.5
+    K = 20
+    max_iter = 500
     clusters = []
     depths = []
 
-    if training:
-        # Load training images
-        train_images = load_images("train_images")
-        for train_img, img_name in train_images:
-            trainGMM.trainGMM(K, 100, train_img, img_name)
-    else:
-        # Load test images
-        test_images = load_images("test_images")
-        for test_img, img_name in test_images:
-            cluster, mask = testGMM.testGMM(K, threshold, test_img, img_name)
-            clusters.append(cluster)
-            depth = measureDepth.measureDepth(cluster, test_img)
-            depths.append(depth)
+    
+    # load training data
+    X = extract_orange_pixels()
+    # train
+    params = trainGMM(K, max_iter, X, tau_train)
+    print("Finish Training")
+    
+    # Load test images
+    test_images = load_images("test_images")
 
-            # produce masked image
-            three_d_mask = np.stack((mask, mask, mask), axis=2)
-            masked_img = np.multiply(three_d_mask, test_img)
-            image_name = os.path.join("GMM_result", "masked_" + str(img_name))
-            # store image to output directory
-            cv2.imwrite(image_name, masked_img)
-            cv2.waitKey()
+    # test
+    if not (os.path.isdir(output_dir)):
+        os.mkdir(output_dir)
+    cluster, mask, depth = testGMM(params, tau_test, K, prior)
 
-    # TODO: plotGMM
+    # TODO: measure depth and plot GMM
 
     return clusters, depth
 
@@ -50,4 +54,6 @@ def load_images(folder):
 
 
 if __name__ == "__main__":
-    gmm(True)
+    gmm()
+    print("All images have been processed. Press any key on images to exit.")
+    cv2.waitKey(0)
