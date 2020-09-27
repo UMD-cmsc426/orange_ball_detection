@@ -35,7 +35,7 @@ def initialize_use_pixel(X):
     # generate a random positive-semidefinete matrix as covariance matrix
     A = np.random.random((3, 3)) * 60
     cov = np.dot(A, A.transpose())
-    scaling = (random.random() * 5.0)
+    scaling = (random.random() * 5.0)+0.01
     return [scaling, mean, cov]
 
 
@@ -56,8 +56,10 @@ def along_axis(M, argument):
 # mean_diff here is transposed, i.e. mean_diff_transposed.shape = (1, 3)
 def expoent_vectorized(mean_diff_transposed, sigma_inv):
     _mean_diff = np.asmatrix(mean_diff_transposed).T
-    result = np.asscalar((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff))
+    result = ((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff)).item(0)
+    result = result if result != 0 else -1
     return result
+
 
 def covariance_vectorized (mean_diff_transposed):
     mean_diff = np.asmatrix(mean_diff_transposed).T
@@ -89,14 +91,13 @@ def extract_orange_pixels():
 
     return orange_pixels
 
-
-
 '''
 parameters:
 K: int, number of guassian distribution
 max_iter: int, maximum number of step in optimization
 X: Nx3 array of all orange pixels
 '''
+
 def trainGMM(K, max_iter, X, tau_train):
     # Structure of params:
     # [[scale,mean,covariance],[scale,mean,covariance], [scale,mean,covariance]...]
@@ -114,6 +115,7 @@ def trainGMM(K, max_iter, X, tau_train):
         # Expectation step - get cluster weight
         for cluster in range(K):
             cluster_scaling, cluster_mean, cluster_cov = params[cluster]
+
             # if there is error, then re-initialize
             if np.isnan(cluster_mean).any():
                 return trainGMM(K, max_iter, X, tau_train)
