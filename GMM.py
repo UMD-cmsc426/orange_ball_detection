@@ -1,12 +1,6 @@
-from trainGMM import *
+from project1.trainGMM import *
+from project1.plotGMM import *
 from testGMM import *
-from measureDepth import *
-import os
-import cv2
-import numpy as np
-import random
-from gaussian import *
-
 
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
@@ -14,46 +8,43 @@ test_dir = "test_images"# path to the train image dataset
 output_dir = "results"
 
 
-def gmm():
+def gmm(tau_train, tau_test, Prior, K, maxi_iter, training = True):
+    clusters = []
+    depth = []
+    if not (os.path.isdir(output_dir)):
+        os.mkdir(output_dir)
+    if training:
+        # load training data
+        X = extract_orange_pixels()
+        # train
+        print("--- Start Training ---")
+        params = trainGMM(K, max_iter, X, tau_train)
+        with open(os.path.join(output_dir, "weights"), "wb") as f:
+            np.save(f, params, allow_pickle=True)
+    else:
+        # testing:
+        print("Here: ", os.path.isfile(os.path.join(output_dir, "weights")))
+        try:
+            with open(os.path.join(output_dir, "weights"), "rb") as f:
+                params = np.load(f, allow_pickle=True)
+        except Exception:
+            raise Exception("No training Model found! Please train first")
+            # test
+        print("--- Start Testing ---")
+        testGMM(params, tau_test, K, prior)
+        # TODO: measure depth and plot GMM
+    # plot GMM
+    plotGMM(params)
+    print("--- END ---")
+    return clusters, depth
+
+if __name__ == "__main__":
     # User defined threshold
     tau_train = 0.7
     tau_test = 0.0000004
     prior = 0.5
     K = 20
     max_iter = 500
-    clusters = []
-    depths = []
 
-    
-    # load training data
-    X = extract_orange_pixels()
-    # train
-    params = trainGMM(K, max_iter, X, tau_train)
-    print("Finish Training")
-    
-    # Load test images
-    test_images = load_images("test_images")
+    gmm(tau_train, tau_test,prior, K, max_iter, training= False)
 
-    # test
-    if not (os.path.isdir(output_dir)):
-        os.mkdir(output_dir)
-    cluster, mask, depth = testGMM(params, tau_test, K, prior)
-
-    # TODO: measure depth and plot GMM
-
-    return clusters, depth
-
-
-def load_images(folder):
-    images = []
-    for file_name in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder, file_name))
-        if img is not None:
-            images.append((img, file_name))
-    return images
-
-
-if __name__ == "__main__":
-    gmm()
-    print("All images have been processed. Press any key on images to exit.")
-    cv2.waitKey(0)

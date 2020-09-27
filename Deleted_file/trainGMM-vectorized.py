@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-import random
+import random,math
 import testGMM
 from gaussian import *
 
@@ -56,10 +56,8 @@ def along_axis(M, argument):
 # mean_diff here is transposed, i.e. mean_diff_transposed.shape = (1, 3)
 def expoent_vectorized(mean_diff_transposed, sigma_inv):
     _mean_diff = np.asmatrix(mean_diff_transposed).T
-    result = ((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff)).item(0)
-    result = result if result != 0 else -1
+    result = np.asscalar((-0.5) * ((_mean_diff.T) @ sigma_inv @ _mean_diff))
     return result
-
 
 def covariance_vectorized (mean_diff_transposed):
     mean_diff = np.asmatrix(mean_diff_transposed).T

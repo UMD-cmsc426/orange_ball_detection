@@ -2,13 +2,12 @@ import os
 import cv2
 import numpy as np
 import random
-import testGMM
 from gaussian import *
+import math
 
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
-# output directory
-output_dir = "results"
+
 
 # Randomly initialize gaussian distribution
 # returns a 1 x 3 matrix, 
@@ -44,7 +43,7 @@ def check_convergence(total_mean, prev_total_mean, tau, iter):
     sum = np.sum(np.apply_along_axis(np.linalg.norm,1, total_mean - prev_total_mean))
     # print("Current Mean: \n", total_mean)
     # print("Previous Mean: \n", prev_total_mean)
-    print("Iter " + str(iter) + ": Convergence difference= ", sum)
+    #print("Iter " + str(iter) + ": Convergence difference= ", sum)
     return sum <= tau
 
 # In order to apply "np.apply_along_aixs" function with argument input, we have to define our own along_axis function
@@ -154,8 +153,8 @@ def trainGMM(K, max_iter, X, tau_train):
 
         iter += 1
         
-    print("final means")
-    print(np.array([cluster_mean for cluster_scaling, cluster_mean, cluster_cov in params]))
+    # print("final means")
+    # print(np.array([cluster_mean for cluster_scaling, cluster_mean, cluster_cov in params]))
     return params
 
 

@@ -1,10 +1,12 @@
 import os
 import cv2
 import numpy as np
-import random
+import math
 from gaussian import *
 
-
+train_dir = "train_images"# path to the train image dataset
+test_dir = "test_images"# path to the train image dataset
+output_dir = os.path.join("results","GMM")
 # test on test images
 # params: [[scale,mean,covariance],[scale,mean,covariance], [scale,mean,covariance]...]
 # scale is a int. Mean is a 3x1 ndarray. Covariance is a 3x3 ndarray
@@ -40,14 +42,12 @@ def testGMM(params, tau_test, K, prior):
 
         ##  show masked img
         image_name = os.path.join(output_dir,"GMM_"+ str(img_name))
-        cv2.imshow(image_name, img)
+        # cv2.imshow(image_name, img)
         cv2.imwrite(image_name, img)
         print("Finish Generating mask for image ", str(img_name))
 
-	# TODO: measure depth and plot GMM
-	# depth = measureDepth.measureDepth(cluster, test_img)
-
     print("All Images Completed")
+    print("Test results are stored at location /result/GMM")
     return None, None, None
 
 

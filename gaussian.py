@@ -13,13 +13,11 @@ import time
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
-output_dir = "results"
+output_dir = os.path.join("results","single_guassian")
 
 # User defined threshold
 tau = 0.00000017
 prior = 0.5
-
-
 
 # Define a vectorized function that generates a RGB image's mean value and covariance.
 # input shape: X:(num of pixels, 3)
@@ -29,9 +27,6 @@ def cal_mean_cov_vectorized(X):
     mean = X.mean(axis=0)  # compute mean
     cov = np.matmul((X - mean).T, (X - mean)) / (N - 1)  # compute covariance
     return mean, cov
-
-
-
 
 # extract orange pixels from training images
 # return Nx3 array
@@ -56,13 +51,11 @@ def extract_orange_pixels():
             orange_pixels = np.append(orange_pixels, X[X_mask>20], axis =0)
     return orange_pixels
 
-
 # train on orange pixels
 # param X is orange pixels, Nx3 array 
 def train_on_orange_pixels(X):
     mean, cov = cal_mean_cov_vectorized(X)   
     return mean, cov
-
 
 # test on test images
 # param: mean and cov of all orange pixels
@@ -87,48 +80,28 @@ def test(orange_mean, orange_cov):
         posterior = prior* likelihood 
         
         # mask (reshape back to 2D image)
-        mask = posterior.reshape(l, w) 
-        #print(mask)
-        
+        mask = posterior.reshape(l, w)
+
         # apply mask
         img[mask < tau] = 0
 
         ##  show masked img
         image_name = os.path.join(output_dir,"single_gaussian_"+ str(img_name))
-        cv2.imshow(image_name, img)
+        # cv2.imshow(image_name, img)
         cv2.imwrite(image_name, img)
         # cv2.waitKey(0)
         print("Finish Generating mask for image ", str(img_name))
     
 
-
-# if __name__ == "__main__":
-#     # load data
-#     input_dir = "train_images"  # path to the train image dataset
-#     # output directory
-#     if not (os.path.isdir("single_gaussian_result")):
-#         os.mkdir("single_gaussian_result")
-#     output_dir = "single_gaussian_result"
-#     # User defined threshold
-#     tau = 0.00000000000000001
-#     # Number of process
-#     print("Starting #", mp.cpu_count(), "of process")
-#     pool = mp.Pool()
-#     for img in os.listdir(input_dir):
-#         pool.apply_async(func=single_gussian, args=(img, input_dir, output_dir, tau,))
-#         break
-#     pool.close()
-#     pool.join()
-#     print("All Process are finished")
-#     print("Single gussian result are stored in the directory called single_guassian_result")
 if __name__ == "__main__":
     # output directory
     if not (os.path.isdir(output_dir)):
         os.mkdir(output_dir)
     orange_mean, orange_cov = train_on_orange_pixels(extract_orange_pixels())
-    print("orange_mean: "+ str(orange_mean)) # BGR, not RGB
-    print("orange_cov: \n" + str(orange_cov))
+    # print("orange_mean: "+ str(orange_mean)) # BGR, not RGB
+    # print("orange_cov: \n" + str(orange_cov))
     test(orange_mean, orange_cov)
-    print("All images have been processed. Press any key on images to exit.")
+    print("All images have been processed.")
+    print("All masks are saved at result/single_guassian")
     cv2.waitKey(0)
     
