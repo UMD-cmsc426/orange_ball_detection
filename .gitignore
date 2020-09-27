@@ -1,6 +1,4 @@
 # Project specific ignore:
-train_images/
-test_images/
 .idea/
 train_images.zip
 
