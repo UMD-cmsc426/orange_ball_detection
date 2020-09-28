@@ -1,5 +1,5 @@
-from project1.trainGMM import *
-from project1.plotGMM import *
+from trainGMM import *
+from plotGMM import *
 from testGMM import *
 
 train_dir = "train_images"# path to the train image dataset
@@ -8,7 +8,7 @@ test_dir = "test_images"# path to the train image dataset
 output_dir = "results"
 
 
-def gmm(tau_train, tau_test, Prior, K, maxi_iter, training = True):
+def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
     clusters = []
     depth = []
     if not (os.path.isdir(output_dir)):
@@ -38,6 +38,7 @@ def gmm(tau_train, tau_test, Prior, K, maxi_iter, training = True):
     print("--- END ---")
     return clusters, depth
 
+
 if __name__ == "__main__":
     # User defined threshold
     tau_train = 0.7
@@ -46,5 +47,4 @@ if __name__ == "__main__":
     K = 20
     max_iter = 500
 
-    gmm(tau_train, tau_test,prior, K, max_iter, training= False)
-
+    gmm(tau_train, tau_test, prior, K, max_iter, training=False)

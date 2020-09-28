@@ -1,8 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-from gaussian import *
-from trainGMM import *
 from testGMM import *
 
 # load data
@@ -10,6 +5,7 @@ train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
 output_dir = "results"
+
 
 def plotGMM(params):
 

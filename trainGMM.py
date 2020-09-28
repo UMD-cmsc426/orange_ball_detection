@@ -1,6 +1,3 @@
-import os
-import cv2
-import numpy as np
 import random
 from gaussian import *
 import math
@@ -35,9 +32,6 @@ def initialize_use_pixel(X):
     scaling = (random.random() * 5.0)
     return [scaling, mean, cov]
 
-
-
-
 # return true if MLE converges. Return false otherwise
 def check_convergence(total_mean, prev_total_mean, tau, iter):
     sum = np.sum(np.apply_along_axis(np.linalg.norm,1, total_mean - prev_total_mean))
@@ -59,8 +53,6 @@ def expoent_vectorized(mean_diff_transposed, sigma_inv):
 def covariance_vectorized (mean_diff_transposed):
     mean_diff = np.asmatrix(mean_diff_transposed).T
     return [mean_diff@(mean_diff.T)]
-
-
 
 # extract orange pixels from training images
 # return Nx3 array
