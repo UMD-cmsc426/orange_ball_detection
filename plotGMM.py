@@ -8,13 +8,12 @@ output_dir = "results"
 
 
 def plotGMM(params):
-
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     for param in params:
         scaling, mean, cov = param
         w, v = np.linalg.eig(cov)
-        # Define elipsold center
+        # Define ellipsoid center
         x_r, y_r, z_r = scaling * w
         # calculate zenith angle
         x_vec, y_vec, z_vec = v.T
@@ -33,5 +32,5 @@ def plotGMM(params):
     if not (os.path.isdir(os.path.join(output_dir, "ellipsoid"))):
         os.mkdir(os.path.join(output_dir, "ellipsoid"))
     fig.savefig(fname=plt_name, dpi=fig.dpi)
-    print("Ellipoisd has been saved at /result/ellipsoid/ellipsoid_plot.png")
+    print("Ellipsoid has been saved at /result/ellipsoid/ellipsoid_plot.png")
 

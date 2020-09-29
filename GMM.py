@@ -29,10 +29,9 @@ def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
                 params = np.load(f, allow_pickle=True)
         except Exception:
             raise Exception("No training Model found! Please train first")
-            # test
         print("--- Start Testing ---")
         testGMM(params, tau_test, K, prior)
-        # TODO: measure depth and plot GMM
+        # measure depth
         depth_params = measure_depth_train()
         measure_depth_predict(depth_params)
 

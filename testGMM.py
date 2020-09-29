@@ -3,13 +3,20 @@ from gaussian import *
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 output_dir = os.path.join("results", "GMM_test")
-# test on test images
-# params: [[scale,mean,covariance],[scale,mean,covariance], [scale,mean,covariance]...]
-# scale is a int. Mean is a 3x1 ndarray. Covariance is a 3x3 ndarray
+
+
 def testGMM(params, tau_test, K, prior):
+    '''
+    :param params: [[scale,mean,covariance],[scale,mean,covariance], [scale,mean,covariance]...]
+    scale is a int. Mean is a 3x1 ndarray. Covariance is a 3x3 ndarray
+    :param tau_test: threshold
+    :param K: number of clusters
+    :return:
+    '''
     for img_name in os.listdir(test_dir):
         img = cv2.imread(os.path.join(test_dir, img_name))
-        l, w, h = img.shape # original shape of 2D image
+        # original shape of 2D image
+        l, w, h = img.shape
         # reshape to num of rows = num of pixels, num of column = 3 (RGB)
         X = img.transpose(2, 0, 1).reshape(3, -1).T
         N, D = X.shape
@@ -24,7 +31,7 @@ def testGMM(params, tau_test, K, prior):
             sigma_inv = np.linalg.inv(cluster_cov)
             X2 = X-cluster_mean
             exponent = (-0.5)*(np.dot(X2, sigma_inv) * X2).sum(1) 
-            cluster_likelihood = cluster_scaling *constant_in_likelihood * np.exp(exponent)
+            cluster_likelihood = cluster_scaling * constant_in_likelihood * np.exp(exponent)
             likelihood += cluster_likelihood
         
         # posterior

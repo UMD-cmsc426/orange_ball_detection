@@ -8,17 +8,6 @@ import numpy as np
 
 def measure_depth_train():
     GMM_dir = os.path.join("results", "GMM")
-    # mask = cv2.imread("results/GMM/GMM_68.jpg") # cv2 read img as BGR
-    #
-    # # calculate orange pixels:
-    # mask = cv2.inRange(mask,(20,20,20),(240,240,240) )
-    # # cv2.imshow("mask",mask)
-    # # cv2.waitKey()
-    # none_black_pixel = cv2.countNonZero(mask)
-    # print("here: ", none_black_pixel)
-    #
-    # cv2.imshow("mask",mask)
-    # cv2.waitKey(1)
 
     # GET a list of distance
     dis_list = []
@@ -54,6 +43,7 @@ def measure_depth_predict(params):
         num_pixel = cv2.countNonZero(cv2.inRange(mask, (20, 20, 20), (240, 240, 240)))
         predicted_dist = inverse_square(num_pixel, *params)
         print(predicted_dist)
+        # Output test images with predicted distance
         h, w, _ = mask.shape
         font = cv2.FONT_HERSHEY_SIMPLEX
         img = cv2.putText(mask, "D = {}".format(predicted_dist), (int(h / 5), int(w / 5)), font, 0.5, (225, 225, 225),
@@ -63,4 +53,5 @@ def measure_depth_predict(params):
 
 
 def inverse_square(x, a, b):
+    # Fit function for area vs. distance
     return np.sqrt(a/b/x)
