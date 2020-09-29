@@ -1,7 +1,7 @@
 from gaussian import *
 
-train_dir = "train_images"# path to the train image dataset
-test_dir = "test_images"# path to the train image dataset
+train_dir = "train_images"  # path to the train image dataset
+test_dir = "test_images"    # path to the train image dataset
 output_dir = os.path.join("results", "GMM_test")
 
 
@@ -20,7 +20,6 @@ def testGMM(params, tau_test, K, prior):
         # reshape to num of rows = num of pixels, num of column = 3 (RGB)
         X = img.transpose(2, 0, 1).reshape(3, -1).T
         N, D = X.shape
-        # img = X.reshape(l, w, -1) # reshape back to 2d image
         likelihood = np.zeros(N)
         
         for cluster in range(K):

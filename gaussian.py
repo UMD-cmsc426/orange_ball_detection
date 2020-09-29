@@ -1,19 +1,13 @@
-# import packages
 import cv2
 import os
 import numpy as np
 import math
-import scipy
-import matplotlib.pyplot as plt
-import sys
-import time 
-# from datetime import datetime # for benchmarking purpose
 
 # input directory
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
-output_dir = os.path.join("results","single_guassian")
+output_dir = os.path.join("results", "Gaussian_test")
 
 # User defined threshold
 tau = 0.00000017
@@ -59,14 +53,13 @@ def train_on_orange_pixels(X):
 
 # test on test images
 # param: mean and cov of all orange pixels
-def test(orange_mean, orange_cov):
+def gaussian_test(orange_mean, orange_cov):
     for img_name in os.listdir(test_dir):
         img = cv2.imread(os.path.join(test_dir, img_name))
         l, w, h = img.shape # original shape of 2D image
         X = img.transpose(2,0,1).reshape(3,-1).T # reshape to num of rows = num of pixels, num of column = 3 (RGB)
         N, D = X.shape
-        #img = X.reshape(l, w, -1) # reshape back to 2d image
-    
+
         # calculate likelihood using gaussian distribution
         # each pixel is row of X
         constant_in_likelihood = 1/(math.sqrt(((2*math.pi)**3)* np.linalg.det(orange_cov))) 
@@ -100,8 +93,7 @@ if __name__ == "__main__":
     orange_mean, orange_cov = train_on_orange_pixels(extract_orange_pixels())
     # print("orange_mean: "+ str(orange_mean)) # BGR, not RGB
     # print("orange_cov: \n" + str(orange_cov))
-    test(orange_mean, orange_cov)
+    gaussian_test(orange_mean, orange_cov)
     print("All images have been processed.")
     print("All masks are saved at result/single_guassian")
     cv2.waitKey(0)
-    
