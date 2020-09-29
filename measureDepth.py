@@ -24,11 +24,17 @@ def measure_depth_train():
 
     params, _ = optimize.curve_fit(inverse_square, *zip(*train_list))
 
-    print("params: ", params)
+    print("distance params: ", params)
     plt.scatter(*zip(*train_list), label='Data')
     plt.plot(list(zip(*train_list))[0], inverse_square(list(zip(*train_list))[0], params[0], params[1]),
              label='Fitted function')
     plt.legend(loc='best')
+    plt.xlabel("Area")
+    plt.ylabel("Distance")
+    plt.title("Distance vs. Area")
+    plt_name = os.path.join("results", "distance_curve")
+    plt.savefig(fname=plt_name)
+    print("Distance curve has been saved at /results/distance_curve.png")
     plt.show()
 
     return params
@@ -42,7 +48,6 @@ def measure_depth_predict(params):
         mask = cv2.imread(os.path.join(test_dir, img_name))
         num_pixel = cv2.countNonZero(cv2.inRange(mask, (20, 20, 20), (240, 240, 240)))
         predicted_dist = inverse_square(num_pixel, *params)
-        print(predicted_dist)
         # Output test images with predicted distance
         h, w, _ = mask.shape
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -54,4 +59,4 @@ def measure_depth_predict(params):
 
 def inverse_square(x, a, b):
     # Fit function for area vs. distance
-    return np.sqrt(a/b/x)
+    return np.sqrt(a/(b**2)/x)
