@@ -78,9 +78,8 @@ def gaussian_test(orange_mean, orange_cov):
         # apply mask
         img[mask < tau] = 0
 
-        ##  show masked img
+        # show masked img
         image_name = os.path.join(output_dir,"single_gaussian_"+ str(img_name))
-        # cv2.imshow(image_name, img)
         cv2.imwrite(image_name, img)
         # cv2.waitKey(0)
         print("Finish Generating mask for image ", str(img_name))
