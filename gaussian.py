@@ -96,4 +96,3 @@ if __name__ == "__main__":
     gaussian_test(orange_mean, orange_cov)
     print("All images have been processed.")
     print("All masks are saved at result/single_guassian")
-    cv2.waitKey(0)

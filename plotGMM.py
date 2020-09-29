@@ -1,5 +1,5 @@
 from testGMM import *
-
+import matplotlib as plt
 # load data
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
