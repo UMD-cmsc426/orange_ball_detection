@@ -1,7 +1,7 @@
 from trainGMM import *
 from plotGMM import *
 from testGMM import *
-
+from measureDepth import *
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
@@ -33,6 +33,9 @@ def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
         print("--- Start Testing ---")
         testGMM(params, tau_test, K, prior)
         # TODO: measure depth and plot GMM
+        depth_params = measure_depth_train()
+        measure_depth_predict(depth_params)
+
     # plot GMM
     plotGMM(params)
     print("--- END ---")
