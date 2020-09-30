@@ -7,7 +7,7 @@ import numpy as np
 
 
 def measure_depth_train():
-    GMM_dir = os.path.join("results", "GMM")
+    GMM_dir = os.path.join("results", "depth_train")
 
     # GET a list of distance
     dis_list = []
@@ -25,6 +25,8 @@ def measure_depth_train():
     params, _ = optimize.curve_fit(inverse_square, *zip(*train_list))
 
     print("distance params: ", params)
+    fig=plt.figure()
+    ax=fig.add_axes([0,0,1,1])
     plt.scatter(*zip(*train_list), label='Data')
     plt.plot(list(zip(*train_list))[0], inverse_square(list(zip(*train_list))[0], params[0], params[1]),
              label='Fitted function')
@@ -44,6 +46,8 @@ def measure_depth_predict(params):
     # Predict distance for test set images
     test_dir = os.path.join("results", "GMM_test")
     output_dir = os.path.join("results", "distances")
+    if not (os.path.isdir(output_dir)):
+        os.mkdir(output_dir)
     for img_name in os.listdir(test_dir):
         mask = cv2.imread(os.path.join(test_dir, img_name))
         num_pixel = cv2.countNonZero(cv2.inRange(mask, (20, 20, 20), (240, 240, 240)))

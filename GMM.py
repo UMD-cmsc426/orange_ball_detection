@@ -5,8 +5,8 @@ from measureDepth import *
 train_dir = "train_images"# path to the train image dataset
 test_dir = "test_images"# path to the train image dataset
 # output directory
-output_dir = "results"
-
+train_output_dir = os.path.join("results", "depth_train")
+test_output_dir = os.path.join("results", "GMM_test")
 
 def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
     clusters = []
@@ -30,7 +30,8 @@ def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
         except Exception:
             raise Exception("No training Model found! Please train first")
         print("--- Start Testing ---")
-        testGMM(params, tau_test, K, prior)
+        testGMM(params, tau_test, K, prior, train_dir, train_output_dir)
+        testGMM(params, tau_test, K, prior, test_dir, test_output_dir)
         # measure depth
         depth_params = measure_depth_train()
         measure_depth_predict(depth_params)
@@ -48,5 +49,9 @@ if __name__ == "__main__":
     prior = 0.5
     K = 20
     max_iter = 500
-
+    if not (os.path.isdir(train_output_dir)):
+        os.mkdir(train_output_dir)
+    if not (os.path.isdir(test_output_dir)):
+        os.mkdir(test_output_dir)
+    gmm(tau_train, tau_test, prior, K, max_iter, training=True)
     gmm(tau_train, tau_test, prior, K, max_iter, training=False)

@@ -1,11 +1,9 @@
 from gaussian import *
 
-train_dir = "train_images"  # path to the train image dataset
-test_dir = "test_images"    # path to the train image dataset
-output_dir = os.path.join("results", "GMM_test")
 
 
-def testGMM(params, tau_test, K, prior):
+
+def testGMM(params, tau_test, K, prior,test_dir,output_dir):
     '''
     :param params: [[scale,mean,covariance],[scale,mean,covariance], [scale,mean,covariance]...]
     scale is a int. Mean is a 3x1 ndarray. Covariance is a 3x3 ndarray
@@ -14,6 +12,8 @@ def testGMM(params, tau_test, K, prior):
     :return:
     '''
     for img_name in os.listdir(test_dir):
+        if "mask" in img_name:
+            continue
         img = cv2.imread(os.path.join(test_dir, img_name))
         # original shape of 2D image
         l, w, h = img.shape
