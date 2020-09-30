@@ -26,7 +26,6 @@ def measure_depth_train():
 
     print("distance params: ", params)
     fig=plt.figure()
-    ax=fig.add_axes([0,0,1,1])
     plt.scatter(*zip(*train_list), label='Data')
     plt.plot(list(zip(*train_list))[0], inverse_square(list(zip(*train_list))[0], params[0], params[1]),
              label='Fitted function')

@@ -44,9 +44,9 @@ def gmm(tau_train, tau_test, prior, K, max_iter, training = True):
 
 if __name__ == "__main__":
     # User defined threshold
-    tau_train = 0.7
+    tau_train = 0.5
     tau_test = 0.0000004
-    prior = 0.5
+    prior = 0.2
     K = 20
     max_iter = 500
     if not (os.path.isdir(train_output_dir)):
