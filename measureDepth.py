@@ -7,7 +7,7 @@ import numpy as np
 
 
 def measure_depth_train():
-    GMM_dir = os.path.join("results", "GMM")
+    GMM_dir = os.path.join("results", "GMM_test")
 
     # GET a list of distance
     dis_list = []
